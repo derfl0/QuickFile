@@ -1,6 +1,6 @@
 // Set close and open
 $(document).keydown(function (e) {
-    if (e.which === 70 && e.ctrlKey) {
+    if (e.which === 70 && e.ctrlKey && e.shiftKey) {
         $('#quickfilewrapper').fadeIn(400);
         $('#quickfilewrapper input').focus();
         var list = $('#quickfile #quickfilelist');
