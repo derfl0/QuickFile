@@ -111,6 +111,8 @@ div#quickfilewrapper div#quickfile div#quickfileinput input {
 div#quickfilewrapper div#quickfile ul {
   list-style: none;
   padding: 0;
+  cursor: pointer;
+  cursor: hand;
 }
 div#quickfilewrapper div#quickfile ul li {
   padding: 8px;
