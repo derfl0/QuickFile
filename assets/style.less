@@ -1,0 +1,49 @@
+div#quickfilewrapper {
+    top: 30%;
+    width: 100%;
+    margin: auto;
+    position:fixed;
+    z-index: 9999999;
+    display:none;
+    div#quickfile {
+        width: 400px;
+        margin: 0 auto;
+        top: 30%;
+        background-color: @content-color-20;
+        border: 1px solid @base-color;
+        h3 {
+            margin: 6px 6px -3px;
+        }
+        div#quickfileinput {
+            padding: 10px;
+            input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            li {
+                padding: 8px;
+                border-top: 1px solid @light-gray-color;
+                position: relative;
+                div.quickfiledate {
+                    position: absolute;
+                    top: 0;
+                    right: 2px;
+                    color: @light-gray-color;
+                    font-size: 0.6em;
+                }
+                p {
+                    margin: 0;
+                    color: @dark-gray-color;
+                    font-size: 0.7em;
+                }
+                &.selected {
+                    background: @base-color-40;
+                }
+            }
+        }
+    }
+} 

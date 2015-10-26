@@ -1,0 +1,5 @@
+pluginname=QuickFile
+pluginclassname=QuickfilePlugin
+origin=intelec
+version=1.0
+studipMinVersion=3.1
