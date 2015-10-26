@@ -8,6 +8,9 @@ $(document).keydown(function (e) {
     }
 
     if (e.which === 27) {
+        
+        // Prevent mac fullscreen
+        e.preventDefault();
         $('#quickfilewrapper').fadeOut(400);
     }
 });
