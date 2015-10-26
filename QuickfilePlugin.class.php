@@ -1,7 +1,5 @@
 <?php
 
-require 'bootstrap.php';
-
 /**
  * QuickfilePlugin.class.php
  *
