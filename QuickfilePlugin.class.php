@@ -64,6 +64,8 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin {
         $stmt->bindParam(':binary', $binary);
         $stmt->execute();
         $result = array();
+
+        // Parse the results
         while (sizeof($result) < 5 && $data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $file = StudipDocument::import($data);
             if ($file->checkAccess(User::findCurrent()->id)) {

@@ -8,7 +8,7 @@ $(document).keydown(function (e) {
     }
 
     if (e.which === 27) {
-        
+
         // Prevent mac fullscreen
         e.preventDefault();
         $('#quickfilewrapper').fadeOut(400);
@@ -28,17 +28,15 @@ STUDIP.quickfile = {
         }).done(function (data) {
             list.children().remove();
             $.each(data, function (key, val) {
-                list.append($('<li>', {text: val.name, 'data-id': val.id, 'data-filename': val.filename})
+                list.append($('<li>')
+                        .append($('<a>', {text: val.name, 'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)})
                         .append($('<p>', {text: val.course}))
-                        .append($('<div>', {class: 'quickfiledate', text: val.date}))
+                        .append($('<div>', {class: 'quickfiledate', text: val.date})))
                         .mouseenter(function (e) {
                             list.children().removeClass('selected');
-                            $(e.target).addClass('selected');
+                            $(e.target).closest('li').addClass('selected');
                         })
-                        .click(function () {
-                            window.location.href = STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename);
-                        })
-                        );
+                );
             });
             list.children().first().addClass('selected');
         });
@@ -55,10 +53,8 @@ $(document).ready(function () {
                 $('#quickfilewrapper').fadeOut(400);
                 break;
 
-            case 13:
-                var id = list.children('.selected').data().id;
-                var name = list.children('.selected').data().filename;
-                window.location.href = STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + id + '&file_name=' + name);
+            case 13: // enter
+                window.location.href = list.children('.selected').find('a').attr('href');
                 break;
 
             case 38: // up
