@@ -15,6 +15,15 @@ $(document).keydown(function (e) {
     }
 });
 
+$('html').click(function (e) {
+    if(e.target.id == "quickfile")
+        return;
+    //For descendants of menu_content being clicked, remove this check if you do not want to put constraint on descendants.
+    if($(e.target).closest('#quickfile').length)
+        return;
+    $('#quickfilewrapper').fadeOut(400);
+});
+
 // Quickfile loader
 STUDIP.quickfile = {
     timeout: null,
