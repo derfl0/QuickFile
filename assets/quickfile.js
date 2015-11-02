@@ -8,7 +8,10 @@ $(document).keydown(function (e) {
         $('#quickfilewrapper').fadeIn(400);
         $('#quickfilewrapper input').focus();
         var list = $('#quickfile #quickfilelist');
-        STUDIP.quickfile.load();
+        if (!STUDIP.quickfile.init) {
+            STUDIP.quickfile.init = true;
+            STUDIP.quickfile.load();
+        }
     }
 
     if (e.which === 27) {
@@ -31,6 +34,7 @@ $('html').click(function (e) {
 // Quickfile loader
 STUDIP.quickfile = {
     timeout: null,
+    init: false,
     load: function () {
         var list = $('#quickfile #quickfilelist');
         $.ajax({
