@@ -37,6 +37,7 @@ STUDIP.quickfile = {
     init: false,
     load: function () {
         var list = $('#quickfile #quickfilelist');
+        $('#quickfileinput input').addClass('quickfile_ajax');
         $.ajax({
             method: "POST",
             url: STUDIP.URLHelper.getURL('plugins.php/QuickfilePlugin/find'),
@@ -59,6 +60,7 @@ STUDIP.quickfile = {
                 );
             });
             list.children().first().addClass('selected');
+            $('#quickfileinput input').removeClass('quickfile_ajax');
         });
     }
 };
