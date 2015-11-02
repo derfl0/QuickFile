@@ -1,6 +1,10 @@
 // Set close and open
 $(document).keydown(function (e) {
-    if (e.which === 70 && e.ctrlKey && e.shiftKey) {
+
+    /* ctrl + shift + f */
+    //if (e.which === 70 && e.ctrlKey && e.shiftKey) {
+    /* ctrl + space */
+    if (e.which === 32 && e.ctrlKey) {
         $('#quickfilewrapper').fadeIn(400);
         $('#quickfilewrapper input').focus();
         var list = $('#quickfile #quickfilelist');
@@ -16,10 +20,10 @@ $(document).keydown(function (e) {
 });
 
 $('html').click(function (e) {
-    if(e.target.id == "quickfile")
+    if (e.target.id == "quickfile")
         return;
     //For descendants of menu_content being clicked, remove this check if you do not want to put constraint on descendants.
-    if($(e.target).closest('#quickfile').length)
+    if ($(e.target).closest('#quickfile').length)
         return;
     $('#quickfilewrapper').fadeOut(400);
 });
@@ -38,9 +42,12 @@ STUDIP.quickfile = {
             list.children().remove();
             $.each(data, function (key, val) {
                 list.append($('<li>')
-                        .append($('<a>', {text: val.name, 'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)})
-                        .append($('<p>', {text: val.course}))
-                        .append($('<div>', {class: 'quickfiledate', text: val.date})))
+                        .append($('<a>', {
+                            html: val.name,
+                            'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)
+                        })
+                            .append($('<p>', {html: val.course}))
+                            .append($('<div>', {class: 'quickfiledate', text: val.date})))
                         .mouseenter(function (e) {
                             list.children().removeClass('selected');
                             $(e.target).closest('li').addClass('selected');
