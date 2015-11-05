@@ -77,7 +77,9 @@ $(document).ready(function () {
                 break;
 
             case 13: // enter
-                window.location.href = list.children('.selected').find('a').attr('href');
+                if (list.children('.selected').find('a').length > 0) {
+                    window.location.href = list.children('.selected').find('a').attr('href');
+                }
                 break;
 
             case 38: // up
