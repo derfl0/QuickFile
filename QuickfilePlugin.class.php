@@ -3,10 +3,7 @@
 /**
  * QuickfilePlugin.class.php
  *
- * ...
- *
  * @author  Florian Bieringer <florian.bieringer@uni-passau.de>
- * @version 0.1a
  */
 class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
 {
