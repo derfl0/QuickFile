@@ -5,6 +5,7 @@ $(document).keydown(function (e) {
     //if (e.which === 70 && e.ctrlKey && e.shiftKey) {
     /* ctrl + space */
     if (e.which === 32 && e.ctrlKey) {
+        e.preventDefault();
         $('#quickfilewrapper').fadeIn(400);
         $('#quickfilewrapper input').focus();
         var list = $('#quickfile #quickfilelist');
