@@ -23,8 +23,7 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
 
     public function find_action()
     {
-        $search = studip_utf8decode(Request::get('search'));
-        $query = "%$search%";
+        $search = trim(studip_utf8decode(Request::get('search')));
 
         // Filter for own courses
         if (!$GLOBALS['perm']->have_perm('admin')) {
@@ -39,11 +38,12 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         // Now check if we got a seminar
         if (strpos($search, '/') !== FALSE) {
             $args = explode('/', $search);
-            $prequery = "%{$args[0]}%";
-            $query = "%{$args[1]}%";
-            $binary = '%' . join('%', str_split(strtoupper($args[0]))) . '%';
+            $prequery = "%" . trim($args[0]) . "%";
+            $query = "%" . trim($args[1]) . "%";
+            $binary = '%' . join('%', str_split(strtoupper(trim($args[0])))) . '%';
             $comp = "AND";
         } else {
+            $query = "%$search%";
             $prequery = $query;
             $comp = "OR";
             $binary = '%' . join('%', str_split(strtoupper($search))) . '%';
@@ -92,9 +92,11 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         if (strpos($query, '/') !== FALSE) {
             $args = explode('/', $query);
             if ($filename) {
-                return $this->mark($string, $args[1]);
+                return $this->mark($string, trim($args[1]));
             }
-            return $this->mark($string, $args[0]);
+            return $this->mark($string, trim($args[0]));
+        } else {
+            $query = trim($query);
         }
 
         // Replace direct string
@@ -104,14 +106,14 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         }
 
         // Replace camelcase
-        $replacement = "$".(++$i);
+        $replacement = "$" . (++$i);
         foreach (str_split(strtoupper($query)) as $letter) {
-        $queryletter[] = "($letter)";
-            $replacement .= "<mark>$".++$i."</mark>$".++$i;
-    }
+            $queryletter[] = "($letter)";
+            $replacement .= "<mark>$" . ++$i . "</mark>$" . ++$i;
+        }
 
 
-        $pattern = "/([\w\W]*)". join('([\w\W]*)',$queryletter) . "/";
+        $pattern = "/([\w\W]*)" . join('([\w\W]*)', $queryletter) . "/";
         $result = preg_replace($pattern, $replacement, $string, -1, $found);
         if ($found) {
             return $result;
