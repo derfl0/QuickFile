@@ -8,11 +8,7 @@ $(document).keydown(function (e) {
         e.preventDefault();
         $('#quickfilewrapper').fadeIn(400);
         $('#quickfilewrapper input').focus();
-        var list = $('#quickfile #quickfilelist');
-        if (!STUDIP.quickfile.init) {
-            STUDIP.quickfile.init = true;
-            STUDIP.quickfile.load();
-        }
+        STUDIP.quickfile.load();
     }
 
     if (e.which === 27) {
@@ -36,33 +32,51 @@ $('html').click(function (e) {
 STUDIP.quickfile = {
     timeout: null,
     init: false,
+    cache: [],
     load: function () {
-        var list = $('#quickfile #quickfilelist');
-        $('#quickfileinput input').addClass('quickfile_ajax');
-        $.ajax({
-            method: "POST",
-            url: STUDIP.URLHelper.getURL('plugins.php/QuickfilePlugin/find'),
-            data: {search: $('#quickfileinput input').val()},
-            dataType: "json"
-        }).done(function (data) {
-            list.children().remove();
-            $.each(data, function (key, val) {
-                list.append($('<li>')
-                        .append($('<a>', {
-                            html: val.name,
-                            'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)
-                        })
-                            .append($('<p>', {html: val.course}))
-                            .append($('<div>', {class: 'quickfiledate', text: val.date})))
-                        .mouseenter(function (e) {
-                            list.children().removeClass('selected');
-                            $(e.target).closest('li').addClass('selected');
-                        })
-                );
+
+        // Get typed value
+        var val = $('#quickfileinput input').val();
+        if (STUDIP.quickfile.cache[val] != undefined) {
+
+            // Load from cache
+            STUDIP.quickfile.display(STUDIP.quickfile.cache[val]);
+        } else {
+            $('#quickfileinput input').addClass('quickfile_ajax');
+            $.ajax({
+                method: "POST",
+                url: STUDIP.URLHelper.getURL('plugins.php/QuickfilePlugin/find'),
+                data: {search: val},
+                dataType: "json"
+            }).done(function (data) {
+
+                // Cache result
+                STUDIP.quickfile.cache[val] = data;
+
+                // Display
+                STUDIP.quickfile.display(data);
+                $('#quickfileinput input').removeClass('quickfile_ajax');
             });
-            list.children().first().addClass('selected');
-            $('#quickfileinput input').removeClass('quickfile_ajax');
+        }
+    },
+    display: function(items) {
+        var list = $('#quickfile #quickfilelist');
+        list.children().remove();
+        $.each(items, function (key, val) {
+            list.append($('<li>')
+                    .append($('<a>', {
+                        html: val.name,
+                        'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)
+                    })
+                        .append($('<p>', {html: val.course}))
+                        .append($('<div>', {class: 'quickfiledate', text: val.date})))
+                    .mouseenter(function (e) {
+                        list.children().removeClass('selected');
+                        $(e.target).closest('li').addClass('selected');
+                    })
+            );
         });
+        list.children().first().addClass('selected');
     }
 };
 
