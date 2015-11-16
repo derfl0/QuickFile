@@ -31,7 +31,7 @@ STUDIP.quickfile = {
     timeout: null,
     cache: [],
     open: function () {
-        $('#quickfilewrapper').fadeIn(400);
+        $('#quickfilewrapper').fadeToggle(400);
         $('#quickfilewrapper input').focus();
         STUDIP.quickfile.load();
     },
@@ -107,8 +107,10 @@ $(document).ready(function () {
                 break;
 
             case 13: // enter
-                if (list.children('.selected').find('a').length > 0) {
-                    window.location.href = list.children('.selected').find('a').attr('href');
+                var elem = list.find('a.selected');
+                console.log(elem);
+                if (elem.length > 0) {
+                    window.location.href = elem.first().attr('href');
                 }
                 break;
 
