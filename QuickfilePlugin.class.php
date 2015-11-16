@@ -188,7 +188,7 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         }
 
         $query = DBManager::get()->quote("%$search%");
-        $sql = "SELECT 'user' as type, user.user_id as id FROM auth_user_md5 user WHERE user.nachname LIKE $query OR username LIKE $query AND " . get_vis_query('user');
+        $sql = "SELECT 'user' as type, user.user_id as id FROM auth_user_md5 user WHERE CONCAT_WS(' ', user.nachname, user.vorname) LIKE $query OR  CONCAT_WS(' ', user.vorname, user.nachname) LIKE $query OR username LIKE $query AND " . get_vis_query('user');
         return $sql;
     }
 
