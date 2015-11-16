@@ -133,7 +133,7 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         }
 
         // If we have less than 5 items, get some from the cache
-        while ($resultCount < 5 && $data = array_pop($cache)) {
+        while ($resultCount < 5 && $cache && $data = array_pop($cache)) {
             if ($item = $this->types[$data['type']]['filter']($data['id'], $search)) {
                 $result[$data['type']]['content'][] = $item;
                 $resultCount++;
