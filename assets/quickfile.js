@@ -6,9 +6,7 @@ $(document).keydown(function (e) {
     /* ctrl + space */
     if (e.which === 32 && e.ctrlKey) {
         e.preventDefault();
-        $('#quickfilewrapper').fadeIn(400);
-        $('#quickfilewrapper input').focus();
-        STUDIP.quickfile.load();
+        STUDIP.quickfile.open();
     }
 
     if (e.which === 27) {
@@ -31,8 +29,12 @@ $('html').click(function (e) {
 // Quickfile loader
 STUDIP.quickfile = {
     timeout: null,
-    init: false,
     cache: [],
+    open: function () {
+        $('#quickfilewrapper').fadeIn(400);
+        $('#quickfilewrapper input').focus();
+        STUDIP.quickfile.load();
+    },
     load: function () {
 
         // Get typed value
@@ -59,25 +61,36 @@ STUDIP.quickfile = {
             });
         }
     },
-    display: function(items) {
+    display: function (items) {
         var list = $('#quickfile #quickfilelist');
         list.children().remove();
+
+        // Append all result groups
         $.each(items, function (key, val) {
-            list.append($('<li>')
-                    .append($('<a>', {
-                        html: val.name,
-                        'href': STUDIP.URLHelper.getURL('sendfile.php?type=0&file_id=' + val.id + '&file_name=' + val.filename)
-                    })
-                        .append($('<p>', {html: val.course}))
-                        .append($('<div>', {class: 'quickfiledate', text: val.date})))
-                    .mouseenter(function (e) {
-                        list.children().removeClass('selected');
-                        $(e.target).closest('li').addClass('selected');
-                    })
-            );
+            var result = $('<li>');
+            list.append(result);
+            result.append($('<p>', {text:val.name}));
+            var resultlist = $('<ul>');
+            result.append(resultlist);
+
+            $.each(val.content, function (mykey, hit) {
+                resultlist.append($('<li>')
+                        .append($('<a>', {
+                            html: hit.name,
+                            href: hit.url
+                        })
+                            .append($('<p>', {html: hit.additional}))
+                            .append($('<div>', {class: 'quickfiledate', text: hit.date})))
+                        .mouseenter(function (e) {
+                            list.find('.selected').removeClass('selected');
+                            $(e.target).closest('a').addClass('selected');
+                        })
+                );
+            });
         });
-        list.children().first().addClass('selected');
-    }
+        list.find('a').first().addClass('selected');
+    },
+    init: false,
 };
 
 //Up and down keys
@@ -85,6 +98,9 @@ $(document).ready(function () {
     $('#quickfilewrapper').keydown(function (e) {
 
         var list = $('#quickfile #quickfilelist');
+        var resultList = list.find('a');
+        var selectedItem = list.find('.selected');
+        var currentIndex = resultList.index(selectedItem);
         switch (e.which) {
             case 27:
                 $('#quickfilewrapper').fadeOut(400);
@@ -98,17 +114,17 @@ $(document).ready(function () {
 
             case 38: // up
                 e.preventDefault();
-                var elem = list.children('.selected');
-                if (elem.prev().length > 0) {
-                    elem.removeClass('selected').prev().addClass('selected');
+                if (currentIndex > 0) {
+                    $(resultList).removeClass('selected');
+                    $(resultList[currentIndex - 1]).addClass('selected');
                 }
                 break;
 
             case 40: // down
                 e.preventDefault();
-                var elem = list.children('.selected');
-                if (elem.next().length > 0) {
-                    elem.removeClass('selected').next().addClass('selected');
+                if (resultList.size() - 1 > currentIndex) {
+                    $(resultList).removeClass('selected');
+                    $(resultList[currentIndex + 1]).addClass('selected');
                 }
                 break;
 

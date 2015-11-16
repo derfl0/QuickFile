@@ -15,16 +15,28 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         parent::__construct();
         self::addStylesheet('/assets/style.less');
         PageLayout::addScript($this->getPluginURL() . '/assets/quickfile.js');
-        PageLayout::addBodyElements('<div id="quickfilewrapper"><div id="quickfile"><h3>' . _('Dateisuche') . '</h3><div id="quickfileinput"><input type="text" placeholder="' . _('Veranstaltung / Datei') . '"></div><ul id="quickfilelist"></ul></div></div>');
+        PageLayout::addBodyElements('<div id="quickfilewrapper"><div id="quickfile"><h3>' . _('Podium') . '</h3><div id="quickfileinput"><input type="text" placeholder="' . _('Veranstaltung / Datei') . '"></div><ul id="quickfilelist"></ul></div></div>');
+        $this->types['user'] = array(
+            'name' => _('Benutzer'),
+            'sql' => array('QuickfilePlugin', 'search_user'),
+            'filter' => array('QuickfilePlugin', 'filter_user')
+        );
+        $this->types['file'] = array(
+            'name' => _('Datei'),
+            'sql' => array('QuickfilePlugin', 'search_files'),
+            'filter' => array('QuickfilePlugin', 'filter_file')
+        );
     }
 
-    public function find_action()
-    {
-        $search = trim(studip_utf8decode(Request::get('search')));
 
+    public function search_files($search)
+    {
         // Filter for own courses
         if (!$GLOBALS['perm']->have_perm('admin')) {
-            $ownseminars = "JOIN seminar_user ON (dokumente.seminar_id = seminar_user.seminar_id AND seminar_user.user_id = :userid) ";
+            if (!$GLOBALS['perm']->have_perm('admin')) {
+                $user = DBManager::get()->quote(User::findCurrent()->id);
+            }
+            $ownseminars = "JOIN seminar_user ON (dokumente.seminar_id = seminar_user.seminar_id AND seminar_user.user_id = $user) ";
         }
 
         if (self::USER_SEARCH) {
@@ -35,47 +47,96 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         // Now check if we got a seminar
         if (strpos($search, '/') !== FALSE) {
             $args = explode('/', $search);
-            $prequery = "%" . trim($args[0]) . "%";
-            $query = "%" . trim($args[1]) . "%";
-            $binary = '%' . join('%', str_split(strtoupper(trim($args[0])))) . '%';
+            $prequery = DBManager::get()->quote("%" . trim($args[0]) . "%");
+            $query = DBManager::get()->quote("%" . trim($args[1]) . "%");
+            $binary = DBManager::get()->quote('%' . join('%', str_split(strtoupper(trim($args[0])))) . '%');
             $comp = "AND";
         } else {
-            $query = "%$search%";
+            $query = DBManager::get()->quote("%$search%");
             $prequery = $query;
             $comp = "OR";
-            $binary = '%' . join('%', str_split(strtoupper($search))) . '%';
+            $binary =  DBManager::get()->quote('%'.join('%', str_split(strtoupper($search))) . '%');
         }
 
         // Build query
-        $sql = "SELECT dokumente.* FROM dokumente "
+        $sql = "SELECT 'file' as type, dokumente.dokument_id as id FROM dokumente "
             . "JOIN seminare USING (seminar_id) $ownseminars $usersearch "
-            . "WHERE (seminare.name LIKE BINARY :binary OR seminare.name LIKE :prequery $usercondition) "
-            . "$comp dokumente.name LIKE :query "
-            . "ORDER BY chdate DESC LIMIT 100";
+            . "WHERE (seminare.name LIKE BINARY $binary OR seminare.name LIKE $prequery $usercondition) "
+            . "$comp dokumente.name LIKE $query "
+            . "ORDER BY dokumente.chdate DESC";
+        return $sql;
+    }
+
+    public function filter_file($file_id, $search)
+    {
+        $file = StudipDocument::find($file_id);
+        if ($file->checkAccess(User::findCurrent()->id)) {
+            return array(
+                'id' => $file->id,
+                'name' => self::mark($file->name, $search),
+                'url' => URLHelper::getURL("sendfile.php?type=0&file_id={$file->id}&file_name={$file->filename}"),
+                'additional' => self::mark($file->course ? $file->course->getFullname() . (self::USER_SEARCH ? " ({$file->author->getFullname()})" : '') : '', $search, false),
+                'date' => strftime('%x', $file->chdate)
+            );
+        }
+    }
+
+    public function search_user($search) {
+
+        if (!$search) {
+            return null;
+        }
+
+        $query = DBManager::get()->quote("%$search%");
+        $sql = "SELECT 'user' as type, user.user_id as id FROM auth_user_md5 user WHERE user.nachname LIKE $query OR username LIKE $query AND ".get_vis_query('user');
+        return $sql;
+    }
+
+    public function filter_user($user_id, $search) {
+        $user = User::find($user_id);
+        return array(
+            'id' => $user->id,
+            'name' => self::mark($user->getFullname(), $search),
+            'url' => URLHelper::getURL("dispatch.php/profile", array('username' => $user->username)),
+            'additional' => self::mark($user->username, $search)
+        );
+    }
+
+    public function find_action()
+    {
+        $search = trim(studip_utf8decode(Request::get('search')));
+
+        foreach ($this->types as $type) {
+            $partSQL = $type['sql']($search);
+            if ($partSQL) {
+                $sql[] = "(" . $type['sql']($search) . " LIMIT 10)";
+            }
+        }
+
+        $fullSQL = join(' UNION ', $sql);
 
         // now query
-        $db = DBManager::get();
-        $stmt = $db->prepare($sql);
-        if (!$GLOBALS['perm']->have_perm('admin')) {
-            $stmt->bindParam(':userid', User::findCurrent()->id);
-        }
-        $stmt->bindParam(':prequery', $prequery);
-        $stmt->bindParam(':query', $query);
-        $stmt->bindParam(':binary', $binary);
+        $stmt = DBManager::get()->prepare($fullSQL);
         $stmt->execute();
-        $result = array();
 
-        // Parse the results
-        while (sizeof($result) < 5 && $data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $file = StudipDocument::import($data);
-            if ($file->checkAccess(User::findCurrent()->id)) {
-                $result[] = array(
-                    'id' => $file->id,
-                    'name' => $this->mark($file->name, $search),
-                    'filename' => $file->filename,
-                    'course' => $this->mark($file->course ? $file->course->getFullname() . (self::USER_SEARCH ? " ({$file->author->getFullname()})" : '') : '', $search, false),
-                    'date' => strftime('%x', $file->chdate)
-                );
+        $result = array();
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if (sizeof($result[$data['type']]['content']) < 2) {
+                if ($item = $this->types[$data['type']]['filter']($data['id'], $search)) {
+                    $result[$data['type']]['name'] = $this->types[$data['type']]['name'];
+                    $result[$data['type']]['content'][] = $item;
+                    $resultCount++;
+                }
+            } else {
+                $cache[] = $data;
+            }
+        }
+
+        // If we have less than 5 items, get some from the cache
+        while ($resultCount < 5 && $data = array_pop($cache)) {
+            if ($item = $this->types[$data['type']]['filter']($data['id'], $search)) {
+                $result[$data['type']]['content'][] = $item;
+                $resultCount++;
             }
         }
 
@@ -84,14 +145,14 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         die;
     }
 
-    private function mark($string, $query, $filename = true)
+    public static function mark($string, $query, $filename = true)
     {
         if (strpos($query, '/') !== FALSE) {
             $args = explode('/', $query);
             if ($filename) {
-                return $this->mark($string, trim($args[1]));
+                return self::mark($string, trim($args[1]));
             }
-            return $this->mark($string, trim($args[0]));
+            return self::mark($string, trim($args[0]));
         } else {
             $query = trim($query);
         }
