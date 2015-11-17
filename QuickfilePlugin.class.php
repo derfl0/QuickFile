@@ -19,13 +19,13 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         $this->types['mycourses'] = array(
             'name' => _('Meine Veranstaltungen'),
             'sql' => array('QuickfilePlugin', 'search_mycourse'),
-            'filter' => array('QuickfilePlugin', 'filter_mycourse')
-        );/*
-        $this->types['user'] = array(
+            'filter' => array('QuickfilePlugin', 'filter_course')
+        );
+        $this->types['courses'] = array(
             'name' => _('Veranstaltungen'),
-            'sql' => array('QuickfilePlugin', 'search_courses'),
-            'filter' => array('QuickfilePlugin', 'filter_courses')
-        );*/
+            'sql' => array('QuickfilePlugin', 'search_course'),
+            'filter' => array('QuickfilePlugin', 'filter_course')
+        );
         $this->types['user'] = array(
             'name' => _('Benutzer'),
             'sql' => array('QuickfilePlugin', 'search_user'),
@@ -210,11 +210,21 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         }
         $query = DBManager::get()->quote("%$search%");
         $user_id = DBManager::get()->quote(User::findCurrent()->id);
-        $sql = "SELECT 'mycourses' as type, courses.seminar_id as id FROM seminare courses JOIN seminar_user USING (seminar_id) WHERE user_id = $user_id AND courses.Name LIKE $query ORDER BY start_time DESC";
+        $sql = "SELECT 'mycourses' as type, courses.seminar_id as id FROM seminare courses JOIN seminar_user USING (seminar_id) WHERE user_id = $user_id AND (courses.Name LIKE $query OR courses.VeranstaltungsNummer LIKE $query) ORDER BY start_time DESC";
         return $sql;
     }
 
-    public function filter_mycourse($course_id, $search)
+    public function search_course($search)
+    {
+        if (!$search) {
+            return null;
+        }
+        $query = DBManager::get()->quote("%$search%");
+        $sql = "SELECT 'courses' as type, courses.seminar_id as id FROM seminare courses WHERE courses.Name LIKE $query OR courses.VeranstaltungsNummer LIKE $query ORDER BY ABS(start_time - unix_timestamp()) ASC";
+        return $sql;
+    }
+
+    public function filter_course($course_id, $search)
     {
         $course = Course::find($course_id);
         return array(
