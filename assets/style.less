@@ -37,7 +37,7 @@ div#quickfilewrapper {
       cursor: pointer;
       cursor: hand;
       li {
-        &> p {
+        & > p {
           background-color: @content-color-80;
           color: white;
           padding-left: 2px;
@@ -57,18 +57,24 @@ div#quickfilewrapper {
               font-size: 0.6em;
             }
             a {
-              display: block;
+              display: flex;
               padding: 8px;
               word-wrap: break-word;
               &.selected {
                 background: @base-color-40;
               }
+              img {
+                margin-right: 8px;
+                max-height: 40px;
+              }
             }
             p {
               margin: 0;
-              color: @dark-gray-color;
-              font-size: 0.7em;
-              word-wrap: break-word;
+              & + p {
+                color: @dark-gray-color;
+                font-size: 0.7em;
+                word-wrap: break-word;
+              }
             }
           }
           &:hover {

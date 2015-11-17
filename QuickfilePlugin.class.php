@@ -199,6 +199,7 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
             'id' => $user->id,
             'name' => self::mark($user->getFullname(), $search),
             'url' => URLHelper::getURL("dispatch.php/profile", array('username' => $user->username)),
+            'img' => Avatar::getAvatar($user->id)->getUrl(AVATAR::MEDIUM),
             'additional' => self::mark($user->username, $search)
         );
     }

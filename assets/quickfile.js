@@ -69,28 +69,33 @@ STUDIP.quickfile = {
         $.each(items, function (key, val) {
             var result = $('<li>');
             list.append(result);
-            result.append($('<p>', {text:val.name}));
+            result.append($('<p>', {text: val.name}));
             var resultlist = $('<ul>');
             result.append(resultlist);
 
             $.each(val.content, function (mykey, hit) {
+
+                var newItem = $('<a>', {href: hit.url})
+                    .append($('<div>')
+                        .append($('<p>', {html: hit.name}))
+                        .append($('<p>', {html: hit.additional}))
+                        .append($('<div>', {class: 'quickfiledate', text: hit.date})))
+                    .mouseenter(function (e) {
+                        list.find('.selected').removeClass('selected');
+                        $(e.target).closest('a').addClass('selected');
+                    });
+
+                // Add image if sent
+                if (hit.img) {
+                    newItem.prepend($('<img>', {src: hit.img}));
+                }
+
                 resultlist.append($('<li>')
-                        .append($('<a>', {
-                            html: hit.name,
-                            href: hit.url
-                        })
-                            .append($('<p>', {html: hit.additional}))
-                            .append($('<div>', {class: 'quickfiledate', text: hit.date})))
-                        .mouseenter(function (e) {
-                            list.find('.selected').removeClass('selected');
-                            $(e.target).closest('a').addClass('selected');
-                        })
-                );
+                    .append(newItem));
             });
         });
         list.find('a').first().addClass('selected');
-    },
-    init: false,
+    }
 };
 
 //Up and down keys
