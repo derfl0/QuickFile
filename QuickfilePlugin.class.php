@@ -13,9 +13,13 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
     public function __construct()
     {
         parent::__construct();
+
+        /* Init html and js */
         self::addStylesheet('/assets/style.less');
         PageLayout::addScript($this->getPluginURL() . '/assets/quickfile.js');
         PageLayout::addBodyElements('<div id="quickfilewrapper"><div id="quickfile"><h3>' . _('Podium') . '</h3><div id="quickfileinput"><input type="text" placeholder="' . _('Veranstaltung / Datei') . '"></div><ul id="quickfilelist"></ul></div></div>');
+
+        /* Init default types */
         $this->types['mycourses'] = array(
             'name' => _('Meine Veranstaltungen'),
             'sql' => array('QuickfilePlugin', 'search_mycourse'),
