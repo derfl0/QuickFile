@@ -65,12 +65,26 @@ STUDIP.quickfile = {
         var list = $('#quickfile #quickfilelist');
         list.children().remove();
 
+        // calculate max size
+        var maxSize = 6;
+        var length = Object.keys(items).length;
+        if (length > 1) {
+            if (length > 2) {
+                maxSize = 2;
+            } else {
+                maxSize = 3;
+            }
+        }
+
         // Append all result groups
         $.each(items, function (key, val) {
             var result = $('<li>');
             list.append(result);
-            result.append($('<p>', {text: val.name}));
-            var resultlist = $('<ul>');
+            result.append($('<p>', {text: val.name})).click(function(e) {
+                $(this).addClass('expand');
+                list.children('li:not(.expand)').addClass('collapse');
+            });
+            var resultlist = $('<ul>', {'data-maxsize': maxSize});
             result.append(resultlist);
 
             $.each(val.content, function (mykey, hit) {
@@ -103,7 +117,7 @@ $(document).ready(function () {
     $('#quickfilewrapper').keydown(function (e) {
 
         var list = $('#quickfile #quickfilelist');
-        var resultList = list.find('a');
+        var resultList = list.find('a:visible');
         var selectedItem = list.find('.selected');
         var currentIndex = resultList.index(selectedItem);
         switch (e.which) {

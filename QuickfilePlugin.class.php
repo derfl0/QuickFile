@@ -17,7 +17,7 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
         /* Init html and js */
         self::addStylesheet('/assets/style.less');
         PageLayout::addScript($this->getPluginURL() . '/assets/quickfile.js');
-        PageLayout::addBodyElements('<div id="quickfilewrapper"><div id="quickfile"><h3>' . _('Podium') . '</h3><div id="quickfileinput"><input type="text" placeholder="' . _('Veranstaltung / Datei') . '"></div><ul id="quickfilelist"></ul></div></div>');
+        PageLayout::addBodyElements('<div id="quickfilewrapper"><div id="quickfile"><h3>' . _('Podium') . '</h3><div id="quickfileinput"><input type="text" placeholder="' . _('Suchbegriff') . '"></div><ul id="quickfilelist"></ul></div></div>');
 
         /* Init default types */
         $this->types['mycourses'] = array(
@@ -61,22 +61,11 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
 
         $result = array();
         while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            if (sizeof($result[$data['type']]['content']) < 2) {
+            if (sizeof($result[$data['type']]['content']) < 6) {
                 if ($item = $this->types[$data['type']]['filter']($data['id'], $search)) {
                     $result[$data['type']]['name'] = $this->types[$data['type']]['name'];
                     $result[$data['type']]['content'][] = $item;
-                    $resultCount++;
                 }
-            } else {
-                $cache[] = $data;
-            }
-        }
-
-        // If we have less than 5 items, get some from the cache
-        while ($resultCount < 5 && $cache && $data = array_pop($cache)) {
-            if ($item = $this->types[$data['type']]['filter']($data['id'], $search)) {
-                $result[$data['type']]['content'][] = $item;
-                $resultCount++;
             }
         }
 
@@ -225,7 +214,13 @@ class QuickfilePlugin extends StudIPPlugin implements SystemPlugin
             return null;
         }
         $query = DBManager::get()->quote("%$search%");
-        $sql = "SELECT 'courses' as type, courses.seminar_id as id FROM seminare courses WHERE courses.Name LIKE $query OR courses.VeranstaltungsNummer LIKE $query ORDER BY ABS(start_time - unix_timestamp()) ASC";
+
+        // visibility
+        if (!$GLOBALS['perm']->have_perm('admin')) {
+            $visibility = "course.visible = 1 AND ";
+        }
+
+        $sql = "SELECT 'courses' as type, courses.seminar_id as id FROM seminare courses WHERE $visibility(courses.Name LIKE $query OR courses.VeranstaltungsNummer LIKE $query) ORDER BY ABS(start_time - unix_timestamp()) ASC";
         return $sql;
     }
 

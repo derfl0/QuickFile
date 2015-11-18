@@ -1,5 +1,5 @@
 div#quickfilewrapper {
-  top: 30%;
+  top: 20%;
   width: 100%;
   margin: auto;
   position: fixed;
@@ -88,6 +88,17 @@ div#quickfilewrapper {
               background: @base-color-40 !important;
             }
           }
+        }
+        &:not(.expand) {
+          ul[data-maxsize='3'] li:nth-child(n+4) {
+            display: none;
+          }
+          ul[data-maxsize='2'] li:nth-child(n+3) {
+            display: none;
+          }
+        }
+        &.collapse {
+          display: none;
         }
       }
     }
